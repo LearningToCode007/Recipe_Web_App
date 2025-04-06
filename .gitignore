@@ -1,90 +1,28 @@
-# Dependencies
+# Git will track all files 
+
+# Node.js
 node_modules/
-
-# Environment variables - but keep example file
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-!.env.example
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-logs/
-*.log
 
 # Runtime data
-pids/
+pids
 *.pid
 *.seed
 *.pid.lock
 
-# Testing
-/coverage
-
-# Production build
-/build
-/dist
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Cache directories
-.cache/
-**/.cache/
-.npm/
-.eslintcache
-
 # Optional npm cache directory
 .npm
+
+# Optional eslint cache
+.eslintcache
 
 # Optional REPL history
 .node_repl_history
 
-# Keep these files
-!package.json
-!package-lock.json
-!backend/
-!frontend/
-!*.js
-!*.jsx
-!*.ts
-!*.tsx
-!*.css
-!*.html
-!README.md
+# Output of 'npm pack'
+*.tgz
 
-# Misc
-.pnp
-.pnp.js
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Cache
-.cache/
-**/.cache/
-frontend/node_modules/.cache/ 
+# Yarn Integrity file
+.yarn-integrity 
