@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: "Droid Sans", sans-serif !important;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.ui {
+  font-family: "Droid Sans", sans-serif !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div,
+p,
+b,
+span,
+a,
+img,
+ul,
+ol,
+li,
+table,
+tr,
+td,
+th,
+form,
+input,
+textarea,
+button,
+label,
+select,
+option,
+nav,
+footer,
+header,
+main {
+  font-family: "Droid Sans", sans-serif !important;
+}
+
+/* Apply to all dropdown buttons */
+.dropdown-toggle {
+  background-color: #4caf50 !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Apply to all dropdown menus */
+.dropdown-menu {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+/* Apply to all dropdown items */
+.dropdown-item {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+/* Apply to all dropdown items on hover/focus */
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: #2980b9 !important;
+  color: white !important;
+}
