@@ -1,22 +1,77 @@
 # Dependencies
 node_modules/
-/.pnp
-.pnp.js
 
-# Testing
-/coverage
-
-# Production
-/build
-/dist
-
-# Misc
-.DS_Store
+# Environment variables - but keep example file
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+/coverage
+
+# Production build
+/build
+/dist
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Cache directories
+.cache/
+**/.cache/
+.npm/
+.eslintcache
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Keep these files
+!package.json
+!package-lock.json
+!backend/
+!frontend/
+!*.js
+!*.jsx
+!*.ts
+!*.tsx
+!*.css
+!*.html
+!README.md
+
+# Misc
+.pnp
+.pnp.js
 
 # Logs
 npm-debug.log*
