@@ -13,7 +13,7 @@ const RecipeList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState("title");
@@ -25,50 +25,39 @@ const RecipeList = () => {
       setLoading(true);
       setError("");
 
-      // Fetch recipes with search parameters
-      const params = {};
-      if (searchTerm.trim()) {
-        params.search = searchTerm.trim();
+      // Build query parameters
+      const params = new URLSearchParams();
+      
+      // Always include search term if provided
+      if (searchTerm && searchTerm.trim()) {
+        params.append("search", searchTerm.trim());
       }
       
-      const recipesResponse = await api.get("/recipes", { params });
-      let filteredData = recipesResponse.data;
+      // Always include category_id
+      params.append("category_id", selectedCategory);
       
-      // Filter by category
-      if (selectedCategory) {
-        filteredData = filteredData.filter(recipe => recipe.category_id === selectedCategory);
-      }
+      // Always include premium filter
+      params.append("premium", filterPremium);
       
-      // Filter by premium status
-      if (filterPremium !== "all") {
-        filteredData = filteredData.filter(recipe => recipe.is_premium === (filterPremium === "premium"));
-      }
+      // Always include sortBy
+      params.append("sortBy", sortBy);
       
-      // Sort recipes
-      filteredData.sort((a, b) => {
-        switch (sortBy) {
-          case "title":
-            return a.title.localeCompare(b.title);
-          case "views":
-            return (b.num_of_views || 0) - (a.num_of_views || 0);
-          default:
-            return 0;
-        }
-      });
+      console.log("Fetching recipes with params:", params.toString()); // Debug log
       
+      const recipesResponse = await api.get(`/recipes?${params.toString()}`);
       setRecipes(recipesResponse.data);
-      setFilteredRecipes(filteredData);
+      setFilteredRecipes(recipesResponse.data);
 
       // Fetch categories if not already loaded
       if (categories.length === 0) {
         const categoriesResponse = await api.get("/categories");
         setCategories(categoriesResponse.data);
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError(error.response?.data?.message || "Failed to load recipes. Please try again later.");
-      setFilteredRecipes([]);
-    } finally {
+      
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load recipes. Please try again.");
       setLoading(false);
     }
   };
@@ -111,79 +100,83 @@ const RecipeList = () => {
   return (
     <Container>
       <h2 className="text-center my-4">Search Recipes</h2>
-      <Row className="justify-content-center mb-4">
-        <Col md={8}>
-          <Card className="p-4 shadow-sm">
-            <Form onSubmit={(e) => e.preventDefault()}>
-              <Row className="g-3">
-                <Col md={12}>
-                  <InputGroup>
-                    <Form.Control
-                      type="text"
-                      placeholder="Search recipes by title or description"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      onKeyPress={handleKeyPress}
-                      className="rounded-start"
-                    />
-                    <Button 
-                      variant="primary" 
-                      onClick={handleSearch}
-                      className="rounded-end"
-                    >
-                      Search
-                    </Button>
-                  </InputGroup>
-                </Col>
-                <Col md={4}>
-                  <Form.Select
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      setSelectedCategory(e.target.value);
-                      fetchData(searchQuery);
-                    }}
-                    className="rounded"
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map((category) => (
-                      <option key={category._id} value={category._id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Col>
-                <Col md={4}>
-                  <Form.Select
-                    value={filterPremium}
-                    onChange={(e) => {
-                      setFilterPremium(e.target.value);
-                      fetchData(searchQuery);
-                    }}
-                    className="rounded"
-                  >
-                    <option value="all">All Recipes</option>
-                    <option value="free">Free Recipes</option>
-                    <option value="premium">Premium Recipes</option>
-                  </Form.Select>
-                </Col>
-                <Col md={4}>
-                  <Form.Select
-                    value={sortBy}
-                    onChange={(e) => {
-                      setSortBy(e.target.value);
-                      fetchData(searchQuery);
-                    }}
-                    className="rounded"
-                  >
-                    <option value="title">Sort by Title</option>
-                    <option value="views">Sort by Views</option>
-                  </Form.Select>
-                </Col>
-              </Row>
-            </Form>
-          </Card>
-        </Col>
-      </Row>
+      <Card className="p-4 shadow-sm mb-4">
+        <Form onSubmit={(e) => e.preventDefault()}>
+          <Row className="g-3">
+            <Col md={12} className="mb-3">
+              <InputGroup>
+                <Form.Control
+                  type="text"
+                  placeholder="Search recipes by title or description"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleKeyPress}
+                />
+                <Button 
+                  variant="primary" 
+                  onClick={handleSearch}
+                >
+                  Search
+                </Button>
+              </InputGroup>
+            </Col>
+
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label>Category</Form.Label>
+                <Form.Select
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    fetchData(searchQuery);
+                  }}
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label>Recipe Type</Form.Label>
+                <Form.Select
+                  value={filterPremium}
+                  onChange={(e) => {
+                    setFilterPremium(e.target.value);
+                    fetchData(searchQuery);
+                  }}
+                >
+                  <option value="all">All Recipes</option>
+                  <option value="free">Free Recipes</option>
+                  <option value="premium">Premium Recipes</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+
+            <Col md={4}>
+              <Form.Group>
+                <Form.Label>Sort By</Form.Label>
+                <Form.Select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    fetchData(searchQuery);
+                  }}
+                >
+                  <option value="title">Sort by Title</option>
+                  <option value="views">Sort by Views</option>
+                  <option value="date">Sort by Date</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </Form>
+      </Card>
 
       {error && (
         <Alert variant="danger" className="mb-4">
@@ -219,22 +212,21 @@ const RecipeList = () => {
                     e.target.src = require("../../images/default.avif");
                   }}
                 />
-                <Card.Body className="d-flex flex-column">
+                <Card.Body>
                   <Card.Title>{recipe.title}</Card.Title>
                   <Card.Text>{recipe.description}</Card.Text>
-                  <div className="mt-auto">
+                  <div className="mt-2 mb-3">
                     {recipe.is_premium && (
                       <Badge bg="warning" text="dark" className="me-2">
                         Premium
                       </Badge>
                     )}
-                    <Badge bg="info" className="me-2">
+                    <Badge bg="info">
                       {categories.find(c => c._id === recipe.category_id)?.name || "Uncategorized"}
                     </Badge>
                   </div>
                   <Button
                     variant="primary"
-                    className="mt-3"
                     onClick={() => navigate(`/recipes/${recipe._id}/details`)}
                   >
                     View Recipe

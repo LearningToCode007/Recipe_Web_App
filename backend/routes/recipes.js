@@ -25,31 +25,60 @@ const upload = multer({ storage: storage });
 
 router.get("/", async (req, res) => {
   try {
-    const { search, category_id } = req.query;
+    const { search, category_id, premium, sortBy } = req.query;
+    console.log("Received query parameters:", { search, category_id, premium, sortBy }); // Debug log
+    
     let query = {};
     
     // Build search query with improved matching
     if (search) {
       const searchTerm = search.trim();
       if (searchTerm.length > 0) {
-        // Create a simple case-insensitive regex pattern that matches anywhere in the text
-        const searchRegex = new RegExp(searchTerm, 'i');
         query.$or = [
-          { title: { $regex: searchRegex } },
-          { description: { $regex: searchRegex } }
+          { title: { $regex: searchTerm, $options: 'i' } },
+          { description: { $regex: searchTerm, $options: 'i' } }
         ];
       }
     }
     
-    // Add category filter if provided
-    if (category_id) {
+    // Add category filter if provided and not "all"
+    if (category_id && category_id !== "all") {
       query.category_id = category_id;
     }
     
-    // Only return approved recipes
-    query.approval_status = { $regex: '^approved$', $options: 'i' };
+    // Add premium filter if provided
+    if (premium) {
+      if (premium.toLowerCase() === 'premium') {
+        query.is_premium = true;
+      } else if (premium.toLowerCase() === 'free') {
+        query.is_premium = false;
+      }
+    }
     
-    const recipes = await Recipe.find(query);
+    // Only return approved recipes
+    query.approval_status = "approved";
+    
+    // Create sort object
+    let sortObject = {};
+    if (sortBy) {
+      if (sortBy.toLowerCase() === 'views') {
+        sortObject.num_of_views = -1;
+      } else if (sortBy.toLowerCase() === 'date') {
+        sortObject.creation_date = -1;
+      } else {
+        sortObject.title = 1;
+      }
+    } else {
+      sortObject.title = 1;
+    }
+    
+    console.log("Final query:", query); // Debug log
+    console.log("Sort object:", sortObject); // Debug log
+    
+    const recipes = await Recipe.find(query).sort(sortObject);
+    console.log("Found recipes:", recipes.length); // Debug log
+    
+    // Get additional details for each recipe
     const finalRecipes = await Promise.all(
       recipes.map(async (recipe) => {
         const recipeJson = recipe.toJSON();
@@ -65,35 +94,6 @@ router.get("/", async (req, res) => {
         return recipeJson;
       })
     );
-    
-    // Sort results by relevance if searching
-    if (search) {
-      const searchLower = search.toLowerCase();
-      finalRecipes.sort((a, b) => {
-        const aTitle = a.title.toLowerCase();
-        const bTitle = b.title.toLowerCase();
-        const aDesc = (a.description || '').toLowerCase();
-        const bDesc = (b.description || '').toLowerCase();
-        
-        // Exact matches in title get highest priority
-        if (aTitle === searchLower && bTitle !== searchLower) return -1;
-        if (bTitle === searchLower && aTitle !== searchLower) return 1;
-        
-        // Contains search term in title gets next priority
-        const aContainsInTitle = aTitle.includes(searchLower);
-        const bContainsInTitle = bTitle.includes(searchLower);
-        if (aContainsInTitle && !bContainsInTitle) return -1;
-        if (bContainsInTitle && !aContainsInTitle) return 1;
-        
-        // Contains search term in description gets lowest priority
-        const aContainsInDesc = aDesc.includes(searchLower);
-        const bContainsInDesc = bDesc.includes(searchLower);
-        if (aContainsInDesc && !bContainsInDesc) return -1;
-        if (bContainsInDesc && !aContainsInDesc) return 1;
-        
-        return 0;
-      });
-    }
     
     res.json(finalRecipes);
   } catch (err) {
